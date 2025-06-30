@@ -1,289 +1,59 @@
-from ui import renderWelcomeUi, renderGameUi, defaultInstructions
+import time
+from ui import renderWelcomeUi, renderGameUi, defaultInstructions, renderSurrenderMessage, renderWinMessage
 from utils import clearScreen, redColor
-from game import Game
+from gameclasses import Game
+from gamefunctions import handleSelectionLeft, handleSelectionRight, handleSelectionUp, handleSelectionDown, handleMovingSelection, handleDraw
 from readchar import readkey, key
 
-clearScreen()
-renderWelcomeUi()
-readkey() # One-letter input without pressing enter https://pypi.org/project/readchar/
-
-solitaireGame = Game() # Creating a new game object
-
-# instructions on the lower side of the game
-solitaireGame.instructionMessage = defaultInstructions
-
-# default selection (for the purpose of simplicity, there will always be at least one card selected)
-solitaireGame.select(0, 0) # 1st column, 1st card
-
-playing = True
-surrender = False
-while playing:
+def main():
     clearScreen()
-    renderGameUi(solitaireGame)
-    if playing:
-        cmd = readkey().lower()
+    renderWelcomeUi()
+    readkey() # One-letter input without pressing enter https://pypi.org/project/readchar/
+
+    solitaireGame = Game() # Creating a new game object
+    startTime = time.time()
+    # instructions on the lower side of the game
+    solitaireGame.instructionMessage = defaultInstructions
+
+    # default selection (for the purpose of simplicity, there will always be at least one card selected)
+    solitaireGame.select(0, 0) # 1st column, 1st card
+
+    playing = True
+    surrender = False
+    while playing:
+        clearScreen()
+        renderGameUi(solitaireGame)
+        if playing:
+            cmd = readkey().lower()
+        else:
+            cmd = ""
+
+        match cmd:
+            case 'a': # move to the left
+                handleSelectionLeft(solitaireGame)
+            case 'd':  # move to the right
+                handleSelectionRight(solitaireGame)
+            case 'w': # move up
+                handleSelectionUp(solitaireGame)
+            case 's': # move down
+                handleSelectionDown(solitaireGame)
+            case '\r' | '\n': # move cards (i hate different OSes. Windows needs \r, linux needs \n)
+                handleMovingSelection(solitaireGame)
+            case 'p': #draw
+                handleDraw(solitaireGame)
+            case 'z':
+                print('Are you sure that you want to surrender? Press "y" to confirm')
+                confirmation = readkey().lower()
+                if confirmation == 'y':
+                    playing = False
+                    surrender = True
+
+    endTime = time.time()
+    elapsedTime = endTime - startTime
+    if surrender:
+        renderSurrenderMessage()
     else:
-        cmd = ""
-
-    match cmd:
-        case 'a': # move to the left
-            x = solitaireGame.lastSelection[0]
-            if x == 0:
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You are already at the leftmost card!')
-                continue
-
-            solitaireGame.instructionMessage = defaultInstructions
-
-            if x < 7:
-                if len(solitaireGame.columns[x - 1]) != 0:  # if the column we're trying to go to is not empty
-                    solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.select(x - 1, len(solitaireGame.columns[x - 1]) - 1)
-                    continue
-            if x == 7:
-                if len(solitaireGame.columns[x - 1]) != 0:  # if the column we're trying to go to is not empty
-                    solitaireGame.deselectWinningColumn(x)  # deselecting the previously selected column
-                    solitaireGame.select(x - 1, len(solitaireGame.columns[x - 1]) - 1)
-                    continue
-            if x > 7:
-                if len(solitaireGame.winningColumns[x - 8]) != 0:  # if the column we're trying to go to is not empty
-                    solitaireGame.deselectWinningColumn(x)  # deselecting the previously selected column
-                    solitaireGame.selectWinning(x - 1)
-                    continue
-
-            #if it's empty
-            columnNum = x - 1
-            solved = False
-            while columnNum > 7 and not solved:
-                columnNum -= 1
-                if len(solitaireGame.winningColumns[columnNum - 7]) != 0:  # if we can actually find a left column that's not empty
-                    if x > 6:
-                        solitaireGame.deselectWinningColumn(x)  # deselecting the previously selected column
-                    else:
-                        solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.selectWinning(columnNum)
-                    solved = True
-
-            while columnNum > 0 and not solved:
-                columnNum -= 1
-                if len(solitaireGame.columns[columnNum]) != 0:  # if we can actually find a left column that's not empty
-                    if x > 6:
-                        solitaireGame.deselectWinningColumn(x)
-                    else:
-                        solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.select(columnNum, len(solitaireGame.columns[columnNum]) - 1)
-                    solved = True
-            if solved:
-                continue
-            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                'You are at the rightmost card: The other columns are empty!')
-
-        case 'd':  # move to the right
-            x = solitaireGame.lastSelection[0]
-            if x == 10:
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                    'You are already at the rightmost card!')
-                continue
-
-            solitaireGame.instructionMessage = defaultInstructions
-
-            if x < 6:
-                if len(solitaireGame.columns[x + 1]) != 0:  # if the column we're trying to go to is not empty
-                    solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.select(x + 1, len(solitaireGame.columns[x + 1]) - 1)
-                    continue
-            if x == 6:
-                if len(solitaireGame.winningColumns[x - 6]) != 0:  # if the column we're trying to go to is not empty
-                    solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.selectWinning(x + 1)
-                    continue
-            if x > 6:
-                if len(solitaireGame.winningColumns[x - 6]) != 0:  # if the column we're trying to go to is not empty
-                    solitaireGame.deselectWinningColumn(x)  # deselecting the previously selected column
-                    solitaireGame.selectWinning(x + 1)
-                    continue
-
-            # if it's empty
-            columnNum = x + 1
-            solved = False
-            while columnNum < 6 and not solved:
-                columnNum += 1
-                if len(solitaireGame.columns[columnNum]) != 0:  # if we can actually find a left column that's not empty
-                    solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.select(columnNum, len(solitaireGame.columns[columnNum]) - 1)
-                    solved = True
-                    continue
-            while columnNum < 10 and not solved:
-                columnNum += 1
-                if len(solitaireGame.winningColumns[columnNum-7]) != 0:  # if we can actually find a left column that's not empty
-                    if x>6:
-                        solitaireGame.deselectWinningColumn(x)  # deselecting the previously selected column
-                    else:
-                        solitaireGame.deselectColumn(x)  # deselecting the previously selected column
-                    solitaireGame.selectWinning(columnNum)
-                    solved = True
-                    continue
-            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                'You are already at the rightmost card!\nThe other columns are empty!')
-
-        case 'w': # move up
-            x, y = solitaireGame.lastSelection
-
-            if x > 6:
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You can\'t select more than one card in special columns!')
-                continue
-
-            if y == 0:
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You are already at the top card!')
-                continue
-
-            upperCard = solitaireGame.columns[x][y-1]
-            if not upperCard.hasBeenDiscovered():
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You can\'t select a card you didn\'t discover')
-                continue
-
-            solitaireGame.select(x, y-1)
-            solitaireGame.instructionMessage = defaultInstructions
-
-        case 's': # move down
-            x, y = solitaireGame.lastSelection
-
-            if x > 6:
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You can\'t select more than one card in special columns!')
-                continue
-
-            if y == len(solitaireGame.columns[x])-1:
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You are already at the bottom card!')
-                continue
-            solitaireGame.deselect(x, y)
-            solitaireGame.instructionMessage = defaultInstructions
-
-        case '\r' | '\n': # move cards (i hate different OSes. Windows needs \r, linux needs \n)
-            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('Now please select the column where you want to put the selected card(s).\nPress q to cancel')
-            clearScreen()
-            selectedColumn = 0
-            renderGameUi(solitaireGame, selectedColumn)
-            columnCmd = ''
-            quitCycle = False
-            while columnCmd not in ['\r', '\n']:
-                columnCmd = readkey().lower()
-                if columnCmd == 'a':
-                    if selectedColumn != 0:
-                        selectedColumn -= 1
-                    else:
-                        solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You are already at the leftmost column!')
-                if columnCmd == 'd':
-                    if selectedColumn != 10:
-                        selectedColumn += 1
-                    else:
-                        solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('You are already at the rightmost column!')
-                if columnCmd == 'q':
-                    quitCycle = True
-                    break
-                clearScreen()
-                renderGameUi(solitaireGame, selectedColumn)
-                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('Now please select the column where you want to put the selected card(s).\nPress q to cancel')
-            if not quitCycle:
-                solitaireGame.tryMoving(selectedColumn)
-            else:
-                solitaireGame.instructionMessage = defaultInstructions
-            continue
-
-        case 'p': #draw
-
-            if len(solitaireGame.remainingDeck) == 0:
-                if len(solitaireGame.discarded) == 0: # no more cards, both in the deck and in the discarded list
-                    solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor('There are no more cards in the deck.')
-                    continue
-                # no more cards in the deck but the discarded list is full. we need to shuffle it.
-                solitaireGame.shuffleDiscarded()
-
-            pickedCard = solitaireGame.remainingDeck[-1] #picking card
-            solitaireGame.remainingDeck = solitaireGame.remainingDeck[:-1] # remove it from the deck
-            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(f'You got a {pickedCard.name} from the deck. Now select the column where you want to put the card.\nIf you want, Press q to discard it')
-
-
-            done = False
-            while not done:
-                clearScreen()
-                renderGameUi(solitaireGame)
-                columnCmd = ''
-                selectedColumn = 0
-                while columnCmd not in ['\r', '\n']:
-                    columnCmd = readkey().lower()
-                    if columnCmd == 'a':
-                        if selectedColumn != 0:
-                            selectedColumn -= 1
-                        else:
-                            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                'You are already at the leftmost column!')
-                    if columnCmd == 'd':
-                        if selectedColumn != 10:
-                            selectedColumn += 1
-                        else:
-                            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                'You are already at the rightmost column!')
-                    if columnCmd == 'q':
-                        solitaireGame.instructionMessage = defaultInstructions
-                        solitaireGame.discarded.append(pickedCard)
-                        done = True
-                        break
-                    clearScreen()
-                    renderGameUi(solitaireGame, selectedColumn)
-                    solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(f'You got a {pickedCard.name} from the deck. Now select the column where you want to put the card.\nIf you want, Press q to discard it')
-
-                if done:
-                    break
-                pickedCard.setVisible()
-                if selectedColumn < 7:
-                    if len(solitaireGame.columns[selectedColumn]) == 0: # first card in normal column
-                        if pickedCard.value != 12:
-                            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                f'You can\'t move a card that isn\'t a king (value: 12) here')
-                        else:
-                            solitaireGame.columns[selectedColumn].append(pickedCard)
-                            solitaireGame.instructionMessage = defaultInstructions
-                            done = True
-                    else: # more than a card in normal column
-                        if pickedCard.value != solitaireGame.columns[selectedColumn][-1].value-1:
-                            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                f'You can\'t move a card that isn\'t of value {str(solitaireGame.columns[selectedColumn][-1].value-1)} here')
-                        else:
-                            if (not(pickedCard.symbol in ['♦', '♥']) and solitaireGame.columns[selectedColumn][-1].symbol in ['♦', '♥']) or (pickedCard.symbol in ['♦', '♥'] and not(solitaireGame.columns[selectedColumn][-1].symbol in ['♦', '♥'])):
-                                solitaireGame.columns[selectedColumn].append(pickedCard)
-                                solitaireGame.instructionMessage = defaultInstructions
-                                done = True
-                            else:
-                                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                    f'You can\'t move a card that is the same color of the last one in the column')
-                else:
-                    if len(solitaireGame.winningColumns[selectedColumn - 7]) == 0: # first card in special column
-                        if pickedCard.value != 1:
-                            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                f'You can\'t move a card that isn\'t an ace (value: 1) here')
-                        else:
-                            solitaireGame.winningColumns[selectedColumn - 7].append(pickedCard)
-                            solitaireGame.instructionMessage = defaultInstructions
-                            done = True
-                    else: # more than a card in a special column
-                        if pickedCard.value != solitaireGame.winningColumns[selectedColumn - 7][-1].value+1:
-                            solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                f'You can\'t move a card that isn\'t of value {str(solitaireGame.winningColumns[selectedColumn - 7][-1].value+1)} here')
-                        else:
-                            if pickedCard.symbol == solitaireGame.winningColumns[selectedColumn - 7][-1].symbol:
-                                solitaireGame.winningColumns[selectedColumn - 7].append(pickedCard)
-                                solitaireGame.instructionMessage = defaultInstructions
-                                done = True
-                            else:
-                                solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                                    f'You can\'t have different symbols in a special column')
-
-        case 'z':
-            print('Are you sure that you want to surrender? Press "y" to confirm')
-            confirmation = readkey().lower()
-            if confirmation == 'y':
-                playing = False
-                surrender = True
-
-        case default:
-            print(cmd.encode().hex())
-
+        clearScreen()
+        renderWinMessage(int(elapsedTime))
+if __name__ == '__main__':
+    main()

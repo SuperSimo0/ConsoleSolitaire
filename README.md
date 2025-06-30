@@ -5,5 +5,6 @@ ConsoleSolitaire is a command-line version of Solitaire, entirely written in pyt
 
 ### Running the project
 You can run the project using the provided scripts:
-- Windows: `run.bat`
-- Linux: `run.sh`
+- Windows: `start.bat`
+- Linux: `start.sh`
+You need to have Python >= 3.10

@@ -254,9 +254,9 @@ def handleDraw(solitaireGame):
         if selectedColumn < 7: # normal columns
 
             if len(solitaireGame.columns[selectedColumn]) == 0:  # first card in normal column
-                if pickedCard.value != 12:
+                if pickedCard.value != 13:
                     solitaireGame.instructionMessage = defaultInstructions + '\n\n' + redColor(
-                        f'You can\'t move a card that isn\'t a king (value: 12) here')
+                        f'You can\'t move a card that isn\'t a king (value: 13) here')
                 else:
                     solitaireGame.columns[selectedColumn].append(pickedCard)
                     solitaireGame.instructionMessage = defaultInstructions

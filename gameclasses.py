@@ -139,7 +139,7 @@ class Game:
 
         if columnNumber < 7: # Logic for the normal columns
             if len(self.columns[columnNumber]) == 0: #Logic for empty columns
-                if firstCardToMove.value != 12:
+                if firstCardToMove.value != 13:
                     self.instructionMessage = defaultInstructions + '\n\n' + redColor(
                         'You can\'t move a series of card(s) that doesn\'t start with a king into an empty column')
                     return False

@@ -21,6 +21,8 @@ def main():
     playing = True
     surrender = False
     while playing:
+        if solitaireGame.gameWon(): # checking if player already won
+            playing = False
         clearScreen()
         renderGameUi(solitaireGame)
         if playing:
@@ -55,5 +57,6 @@ def main():
     else:
         clearScreen()
         renderWinMessage(int(elapsedTime))
+
 if __name__ == '__main__':
     main()

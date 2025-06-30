@@ -6,6 +6,11 @@ colorama.init() # Activate color codes support for most terminals
 
 
 def renderWelcomeUi():
+    """
+    Prints the welcome UI
+    :return:
+    """
+
     welcome = '''\n\n\n
            ________________________________________________
           /                                                \\            /$$$$$$                                          /$$                  
@@ -39,6 +44,12 @@ def renderWelcomeUi():
         print(('\033[48;5;235m' + ''.ljust(get_terminal_size().columns)) + '\033[0m')
 
 def representColumns(deck):
+    """
+    representColumns
+    Having a 2D card array, it returns an array with the text representation of the array itself.
+    :param deck: 2D list of cards
+    :return: list of strings representing the columns. Each string represents a single column
+    """
     columnRepresentation = ['' for _ in range(7)]  # columns
 
     for columnIndex in range(0, len(deck)):
@@ -81,6 +92,12 @@ def representColumns(deck):
 
 
 def getLines(deck):
+    """
+    getLines
+    Having a 2D card array, it generates the list of lines to print as the deck UI
+    :param deck:
+    :return:
+    """
     columnRepresentation = representColumns(deck)
 
     # Mixing and formatting the columns
@@ -104,9 +121,17 @@ def getLines(deck):
 
 
 def renderGameUi(gameObject, selectedColumn=None):
+    """
+    Given a game object and eventually a column to highlight, it renders (prints) the whole game UI.
+    It will print both the deck UIs (the normal one and the winning columns), using colors.
+    Unfortunately it was necessary to setup colorama, as mostly only IDEs support ANSI Escape Codes by default.
+    :param gameObject: main solitaire game object
+    :param selectedColumn: Used for highlighting columns
+    :return:
+    """
+
     deck = gameObject.columns
     winningDeck = gameObject.winningColumns
-    #winningDeck = gameObject.columns[:4]
     normalDeckLines = getLines(deck)
     winningDeckLines = getLines(winningDeck)
 
@@ -155,6 +180,11 @@ Z  ›  Surrender the game'''
 
 
 def renderSurrenderMessage():
+    """
+        Prints the surrender message
+        :return:
+    """
+
     surrender = f'''\n\n\n
     
                    __
@@ -199,6 +229,11 @@ Wanna try again?
         print(('\033[48;5;235m' + ''.ljust(get_terminal_size().columns)) + '\033[0m')
 
 def renderWinMessage(timeTaken):
+    """
+        Prints the win message
+        :return:
+    """
+
     win = f'''\n\n\n
                                      
                                      

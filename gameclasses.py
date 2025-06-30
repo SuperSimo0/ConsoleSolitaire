@@ -52,17 +52,30 @@ class Game:
         self.remainingDeck = cards[28:]
         self.discarded = []
         self.winningColumns = [[], [], [], []]
-        self.cardsInHand = []
         self.instructionMessage = ""
         self.lastSelection = ()
 
     def select(self, x, y):
+        """
+        Select a card with the column and row
+        :param x: column 0-6
+        :param y: row 0-11
+        :return:
+        """
+
         if x < len(self.columns):
             if y < len(self.columns[x]):
                 self.columns[x][y].isSelected = True
                 self.lastSelection = (x, y)
 
     def deselect(self, x, y):
+        """
+            Deselect a card with the column and row
+            :param x: column 0-6
+            :param y: row 0-11
+            :return:
+        """
+
         if x < len(self.columns):
             if y+1 < len(self.columns[x]):
                 self.columns[x][y].isSelected = False
@@ -71,16 +84,34 @@ class Game:
         self.lastSelection = (x, y+1)
 
     def selectWinning(self, x):
+        """
+        Select the last card from the winning columns
+        :param x: column
+        :return:
+        """
+
         self.lastSelection = (x, -1)
         x -= 7
         self.winningColumns[x][-1].isSelected = True
 
     def deselectColumn(self, x):
+        """
+        Deselect every card from the column
+        :param x: column id
+        :return:
+        """
+
         for cardIndex in range(0, len(self.columns[x])):
             card = self.columns[x][cardIndex]
             card.isSelected = False
 
     def deselectWinningColumn(self, x):
+        """
+        Deselect every card from a winning column
+        :param x: column id
+        :return:
+        """
+
         x -= 7
         for card in self.winningColumns[x]:
             card.isSelected = False
@@ -91,6 +122,11 @@ class Game:
         random.shuffle(self.remainingDeck)
 
     def tryMoving(self, columnNumber):
+        """
+        Get the selection and move it into the chosen column
+        :param columnNumber: column id
+        :return: True if it was ok, False if it wasn't
+        """
         # returns True if successful, False if not
 
         x, y = self.lastSelection
@@ -181,8 +217,6 @@ class Game:
                 self.winningColumns[columnNumber][-1].isSelected = False
                 if len(self.columns[x]) != 0:
                     self.columns[x][-1].setVisible()
-                print(columnNumber)
-                print('aa')
                 self.selectWinning(columnNumber+7)
                 return True
 
@@ -206,4 +240,8 @@ class Game:
             self.selectWinning(columnNumber+7)
             return True
 
+    def gameWon(self):
+        if self.remainingDeck == [] and self.discarded == [] and self.columns == [[]*8]:
+            return True
+        return False
     
